@@ -15,12 +15,12 @@ export default function Services() {
     };
 
     const cardVariants: Variants = {
-        hidden: { 
-            opacity: 0, 
+        hidden: {
+            opacity: 0,
             y: 60,
         },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             y: 0,
             transition: {
                 type: "spring",
@@ -33,8 +33,8 @@ export default function Services() {
 
     const iconVariants: Variants = {
         hidden: { scale: 0, rotate: -180 },
-        visible: { 
-            scale: 1, 
+        visible: {
+            scale: 1,
             rotate: 0,
             transition: {
                 type: "spring",
@@ -64,7 +64,7 @@ export default function Services() {
     return (
         <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50/30">
             <div className="max-w-7xl mx-auto px-4">
-                <motion.h2 
+                <motion.h2
                     className="text-5xl font-bold text-center mb-20 text-slate-800"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -74,7 +74,7 @@ export default function Services() {
                     What would you like to do today?
                 </motion.h2>
 
-                <motion.div 
+                <motion.div
                     className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto"
                     variants={containerVariants}
                     initial="hidden"
@@ -82,19 +82,19 @@ export default function Services() {
                     viewport={{ once: true, margin: "-100px" }}
                 >
                     {/* Food Delivery Card */}
-                    <motion.div 
+                    <motion.div
                         className="group relative"
                         variants={cardVariants}
                     >
                         <div className="relative h-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 hover:shadow-3xl transition-all duration-500">
                             {/* Background Pattern */}
                             <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 opacity-80"></div>
-                            
+
                             {/* Content */}
                             <div className="relative z-10 p-8 h-full flex flex-col">
                                 {/* Icon & Header */}
                                 <div className="text-center mb-8">
-                                    <motion.div 
+                                    <motion.div
                                         className="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
                                         variants={iconVariants}
                                         whileHover={{ scale: 1.1, rotate: 5 }}
@@ -137,7 +137,7 @@ export default function Services() {
                                         className="block w-full bg-gradient-to-r from-orange-500 to-red-600 text-white text-center py-5 px-8 rounded-2xl font-bold text-xl shadow-xl hover:shadow-2xl transition-all duration-300 group"
                                     >
                                         <span className="flex items-center justify-center gap-3">
-                                            Order Food 
+                                            Order Food
                                             <span className="group-hover:translate-x-1 transition-transform duration-200">🚀</span>
                                         </span>
                                     </Link>
@@ -151,19 +151,19 @@ export default function Services() {
                     </motion.div>
 
                     {/* Ride Sharing Card */}
-                    <motion.div 
+                    <motion.div
                         className="group relative"
                         variants={cardVariants}
                     >
                         <div className="relative h-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 hover:shadow-3xl transition-all duration-500">
                             {/* Background Pattern */}
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50 opacity-80"></div>
-                            
+
                             {/* Content */}
                             <div className="relative z-10 p-8 h-full flex flex-col">
                                 {/* Icon & Header */}
                                 <div className="text-center mb-8">
-                                    <motion.div 
+                                    <motion.div
                                         className="w-24 h-24 bg-gradient-to-br from-blue-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
                                         variants={iconVariants}
                                         whileHover={{ scale: 1.1, rotate: -5 }}
