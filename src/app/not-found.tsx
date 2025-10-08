@@ -1,4 +1,4 @@
-'use client'; // Add this at the very top
+'use client';
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
