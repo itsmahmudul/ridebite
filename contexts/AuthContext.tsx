@@ -1,12 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  AuthError
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -20,6 +21,11 @@ interface AuthContextType {
   loading: boolean;
 }
 
+interface FirebaseAuthError extends Error {
+  code: string;
+  message: string;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -27,7 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   // Create user document in Firestore - FIXED VERSION
-  const createUserDocument = async (firebaseUser: FirebaseUser, name: string) => {
+  const createUserDocument = async (firebaseUser: FirebaseUser, name: string): Promise<User> => {
     try {
       const userRef = doc(db, 'users', firebaseUser.uid);
       const userSnapshot = await getDoc(userRef);
@@ -41,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           uid: firebaseUser.uid,
           name: name,
           email: firebaseUser.email!,
-          role: isFirstUser ? 'admin' : 'user', // ← FIXED: First user = admin, others = user
+          role: isFirstUser ? 'admin' : 'user', // First user = admin, others = user
           createdAt: new Date().toISOString()
         };
 
@@ -57,7 +63,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         uid: firebaseUser.uid,
         name: name,
         email: firebaseUser.email!,
-        role: 'user', // ← Default to user if there's an error
+        role: 'user', // Default to user if there's an error
         createdAt: new Date().toISOString()
       };
     }
@@ -68,11 +74,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const userRef = doc(db, 'users', firebaseUser.uid);
       const userSnapshot = await getDoc(userRef);
-      
+
       if (userSnapshot.exists()) {
         return userSnapshot.data() as User;
       }
-      
+
       // If user document doesn't exist, create one
       return await createUserDocument(firebaseUser, firebaseUser.email?.split('@')[0] || 'User');
     } catch (error) {
@@ -82,7 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         uid: firebaseUser.uid,
         name: firebaseUser.email?.split('@')[0] || 'User',
         email: firebaseUser.email!,
-        role: 'user', // ← Default to user if there's an error
+        role: 'user', // Default to user if there's an error
         createdAt: new Date().toISOString()
       };
     }
@@ -108,73 +114,91 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => unsubscribe();
   }, []);
 
-  const login = async (data: LoginData) => {
+  const login = async (data: LoginData): Promise<void> => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
       const userData = await getUserData(userCredential.user);
-      
+
       if (!userData) {
         throw new Error('User data not found');
       }
-      
+
       setUser(userData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Login failed';
-      
-      switch (error.code) {
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address';
-          break;
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many failed attempts. Please try again later';
-          break;
-        default:
-          errorMessage = error.message || 'Login failed';
+
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseError = error as FirebaseAuthError;
+
+        switch (firebaseError.code) {
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address';
+            break;
+          case 'auth/user-not-found':
+            errorMessage = 'No account found with this email';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many failed attempts. Please try again later';
+            break;
+          default:
+            errorMessage = firebaseError.message || 'Login failed';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     }
   };
 
-  const signup = async (data: SignupData) => {
+  const signup = async (data: SignupData): Promise<void> => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const userData = await createUserDocument(userCredential.user, data.name);
-      
+
       setUser(userData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Signup failed';
-      
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage = 'An account with this email already exists';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address';
-          break;
-        case 'auth/weak-password':
-          errorMessage = 'Password should be at least 6 characters';
-          break;
-        default:
-          errorMessage = error.message || 'Signup failed';
+
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseError = error as FirebaseAuthError;
+
+        switch (firebaseError.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'An account with this email already exists';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address';
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Password should be at least 6 characters';
+            break;
+          default:
+            errorMessage = firebaseError.message || 'Signup failed';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await signOut(auth);
       setUser(null);
-    } catch (error: any) {
-      throw new Error('Logout failed');
+    } catch (error: unknown) {
+      let errorMessage = 'Logout failed';
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
     }
   };
 
