@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
+import { useRouter } from 'next/navigation';
 
 interface Order {
     id: string;
@@ -42,20 +43,18 @@ interface User {
 }
 
 export default function UserDashboard() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const router = useRouter();
     const [orders, setOrders] = useState<Order[]>([]);
     const [rides, setRides] = useState<Ride[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user) {
-            fetchUserData();
-        }
+        if (user) fetchUserData();
     }, [user]);
 
     const fetchUserData = async () => {
         try {
-            // Fetch orders
             const ordersQuery = query(
                 collection(db, 'orders'),
                 where('userId', '==', user?.uid),
@@ -63,13 +62,9 @@ export default function UserDashboard() {
                 limit(5)
             );
             const ordersSnapshot = await getDocs(ordersQuery);
-            const ordersData: Order[] = ordersSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Order));
+            const ordersData: Order[] = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
             setOrders(ordersData);
 
-            // Fetch rides
             const ridesQuery = query(
                 collection(db, 'rides'),
                 where('userId', '==', user?.uid),
@@ -77,10 +72,7 @@ export default function UserDashboard() {
                 limit(5)
             );
             const ridesSnapshot = await getDocs(ridesQuery);
-            const ridesData: Ride[] = ridesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Ride));
+            const ridesData: Ride[] = ridesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Ride));
             setRides(ridesData);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -107,30 +99,62 @@ export default function UserDashboard() {
                 cancelled: 'bg-red-100 text-red-800'
             }
         };
-
         const statusMap = type === 'order' ? statusColors.order : statusColors.ride;
         return statusMap[status as keyof typeof statusMap] || 'bg-gray-100 text-gray-800';
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 pt-20">
-                <div className="container mx-auto px-6 py-8">
-                    <div className="animate-pulse">
-                        <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-                    </div>
+            <div className="min-h-screen bg-gray-50 flex">
+                <div className="w-64 bg-white p-6 shadow-md">Loading...</div>
+                <div className="flex-1 animate-pulse p-8">
+                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
-            <div className="container mx-auto px-6 py-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                    Welcome, {user?.name}!
-                </h1>
+        <div className="min-h-screen bg-gray-50 flex">
+            {/* Sidebar */}
+            <aside className="w-64 bg-white shadow-md flex flex-col">
+                <div className="p-6 border-b">
+                    <h1 className="text-2xl font-bold text-orange-500">RideBite</h1>
+                </div>
+                <nav className="flex-1 p-4 space-y-2">
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full text-left px-3 py-2 rounded hover:bg-orange-100 transition-colors"
+                    >
+                        Home
+                    </button>
+                    <button
+                        onClick={() => router.push('/food')}
+                        className="w-full text-left px-3 py-2 rounded hover:bg-orange-100 transition-colors"
+                    >
+                        Food
+                    </button>
+                    <button
+                        onClick={() => router.push('/ride')}
+                        className="w-full text-left px-3 py-2 rounded hover:bg-orange-100 transition-colors"
+                    >
+                        Make a Ride
+                    </button>
+                </nav>
+                <div className="p-4 border-t">
+                    <button
+                        onClick={() => { logout(); router.push('/login'); }}
+                        className="w-full px-3 py-2 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 p-8">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome, {user?.name}!</h1>
                 <p className="text-gray-600 mb-8">Here is your activity</p>
 
                 {/* Quick Stats */}
@@ -194,7 +218,7 @@ export default function UserDashboard() {
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
