@@ -2,13 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase';
+
+interface Order {
+    id: string;
+    userId: string;
+    restaurantName: string;
+    total: number;
+    status: 'pending' | 'confirmed' | 'preparing' | 'out-for-delivery' | 'delivered' | 'cancelled';
+    createdAt: Timestamp;
+    items?: OrderItem[];
+}
+
+interface OrderItem {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
+interface Ride {
+    id: string;
+    userId: string;
+    pickup: string;
+    destination: string;
+    fare: number;
+    status: 'requested' | 'accepted' | 'in-progress' | 'completed' | 'cancelled';
+    createdAt: Timestamp;
+    driverName?: string;
+    vehicleType?: string;
+}
+
+interface User {
+    uid: string;
+    name: string;
+    email: string;
+    createdAt?: string;
+}
 
 export default function UserDashboard() {
     const { user } = useAuth();
-    const [orders, setOrders] = useState([]);
-    const [rides, setRides] = useState([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [rides, setRides] = useState<Ride[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -27,10 +63,10 @@ export default function UserDashboard() {
                 limit(5)
             );
             const ordersSnapshot = await getDocs(ordersQuery);
-            const ordersData = ordersSnapshot.docs.map(doc => ({
+            const ordersData: Order[] = ordersSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
-            }));
+            } as Order));
             setOrders(ordersData);
 
             // Fetch rides
@@ -41,16 +77,39 @@ export default function UserDashboard() {
                 limit(5)
             );
             const ridesSnapshot = await getDocs(ridesQuery);
-            const ridesData = ridesSnapshot.docs.map(doc => ({
+            const ridesData: Ride[] = ridesSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
-            }));
+            } as Ride));
             setRides(ridesData);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const getStatusColor = (status: string, type: 'order' | 'ride') => {
+        const statusColors = {
+            order: {
+                pending: 'bg-yellow-100 text-yellow-800',
+                confirmed: 'bg-blue-100 text-blue-800',
+                preparing: 'bg-orange-100 text-orange-800',
+                'out-for-delivery': 'bg-purple-100 text-purple-800',
+                delivered: 'bg-green-100 text-green-800',
+                cancelled: 'bg-red-100 text-red-800'
+            },
+            ride: {
+                requested: 'bg-yellow-100 text-yellow-800',
+                accepted: 'bg-blue-100 text-blue-800',
+                'in-progress': 'bg-orange-100 text-orange-800',
+                completed: 'bg-green-100 text-green-800',
+                cancelled: 'bg-red-100 text-red-800'
+            }
+        };
+
+        const statusMap = type === 'order' ? statusColors.order : statusColors.ride;
+        return statusMap[status as keyof typeof statusMap] || 'bg-gray-100 text-gray-800';
     };
 
     if (loading) {
@@ -72,7 +131,7 @@ export default function UserDashboard() {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
                     Welcome, {user?.name}!
                 </h1>
-                <p className="text-gray-600 mb-8">Here's your activity</p>
+                <p className="text-gray-600 mb-8">Here is your activity</p>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -99,13 +158,13 @@ export default function UserDashboard() {
                         <p className="text-gray-600">No orders yet</p>
                     ) : (
                         <div className="space-y-3">
-                            {orders.map((order: any) => (
-                                <div key={order.id} className="flex justify-between items-center p-3 border rounded-lg">
+                            {orders.map((order: Order) => (
+                                <div key={order.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                                     <div>
-                                        <p className="font-medium">{order.restaurantName}</p>
-                                        <p className="text-sm text-gray-600">${order.total}</p>
+                                        <p className="font-medium text-gray-800">{order.restaurantName}</p>
+                                        <p className="text-sm text-gray-600">${order.total.toFixed(2)}</p>
                                     </div>
-                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                    <span className={`px-2 py-1 text-xs rounded capitalize ${getStatusColor(order.status, 'order')}`}>
                                         {order.status}
                                     </span>
                                 </div>
@@ -121,13 +180,13 @@ export default function UserDashboard() {
                         <p className="text-gray-600">No rides yet</p>
                     ) : (
                         <div className="space-y-3">
-                            {rides.map((ride: any) => (
-                                <div key={ride.id} className="flex justify-between items-center p-3 border rounded-lg">
+                            {rides.map((ride: Ride) => (
+                                <div key={ride.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                                     <div>
-                                        <p className="font-medium">{ride.pickup} → {ride.destination}</p>
-                                        <p className="text-sm text-gray-600">${ride.fare}</p>
+                                        <p className="font-medium text-gray-800">{ride.pickup} → {ride.destination}</p>
+                                        <p className="text-sm text-gray-600">${ride.fare.toFixed(2)}</p>
                                     </div>
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                    <span className={`px-2 py-1 text-xs rounded capitalize ${getStatusColor(ride.status, 'ride')}`}>
                                         {ride.status}
                                     </span>
                                 </div>
