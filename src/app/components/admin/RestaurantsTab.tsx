@@ -9,6 +9,16 @@ interface RestaurantsTabProps {
   onRestaurantsUpdate: (restaurants: Restaurant[]) => void;
 }
 
+interface RestaurantFormData {
+  name: string;
+  cuisine: string;
+  address: string;
+  deliveryTime: string;
+  rating: number;
+  image: string;
+  isOpen: boolean;
+}
+
 export default function RestaurantsTab({
   restaurants,
   loading,
@@ -18,7 +28,7 @@ export default function RestaurantsTab({
     null
   );
 
-  const addRestaurant = async (restaurantData: any) => {
+  const addRestaurant = async (restaurantData: RestaurantFormData) => {
     try {
       const response = await api.post('/restaurants', restaurantData);
       onRestaurantsUpdate([...restaurants, response.data.data]);

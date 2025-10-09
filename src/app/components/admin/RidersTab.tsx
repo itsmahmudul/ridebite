@@ -9,6 +9,27 @@ interface RidersTabProps {
   onRidersUpdate: (riders: Rider[]) => void;
 }
 
+interface RiderFormData {
+  name: string;
+  email: string;
+  phone: string;
+  raiderId: string;
+  vehicle: {
+    type: string;
+    color: string;
+    plateNumber: string;
+  };
+  status: 'available' | 'offline' | 'on-delivery';
+  rating: number;
+  totalDeliveries: number;
+  joinedDate: string;
+  lastActive: string;
+}
+
+interface StatusUpdateData {
+  status: 'available' | 'offline' | 'on-delivery';
+}
+
 export default function RidersTab({
   riders,
   loading,
@@ -16,7 +37,7 @@ export default function RidersTab({
 }: RidersTabProps) {
   const [editingRider, setEditingRider] = useState<Rider | null>(null);
 
-  const addRider = async (riderData: any) => {
+  const addRider = async (riderData: RiderFormData): Promise<void> => {
     try {
       const response = await api.post('/raiders', riderData);
       onRidersUpdate([...riders, response.data.data]);
@@ -27,7 +48,7 @@ export default function RidersTab({
     }
   };
 
-  const updateRider = async (riderData: any) => {
+  const updateRider = async (riderData: RiderFormData): Promise<void> => {
     if (!editingRider) return;
 
     try {
@@ -45,7 +66,7 @@ export default function RidersTab({
     }
   };
 
-  const deleteRider = async (id: string) => {
+  const deleteRider = async (id: string): Promise<void> => {
     if (!confirm('Are you sure you want to delete this rider?')) return;
 
     try {
@@ -58,10 +79,12 @@ export default function RidersTab({
     }
   };
 
-  const toggleRiderStatus = async (rider: Rider) => {
+  const toggleRiderStatus = async (rider: Rider): Promise<void> => {
     try {
-      const newStatus = rider.status === 'available' ? 'offline' : 'available';
-      await api.put(`/raiders/${rider._id}`, { status: newStatus });
+      const newStatus: 'available' | 'offline' = rider.status === 'available' ? 'offline' : 'available';
+      const statusUpdate: StatusUpdateData = { status: newStatus };
+
+      await api.put(`/raiders/${rider._id}`, statusUpdate);
 
       onRidersUpdate(
         riders.map((r) =>
@@ -75,6 +98,14 @@ export default function RidersTab({
   };
 
   const cancelEdit = () => setEditingRider(null);
+
+  const handleFormSubmit = async (riderData: RiderFormData): Promise<void> => {
+    if (editingRider) {
+      await updateRider(riderData);
+    } else {
+      await addRider(riderData);
+    }
+  };
 
   if (loading) {
     return (
@@ -92,93 +123,100 @@ export default function RidersTab({
 
       {/* Rider Form */}
       <RiderForm
-        onSubmit={editingRider ? updateRider : addRider}
+        onSubmit={handleFormSubmit}
         editingRider={editingRider}
         onCancel={cancelEdit}
       />
 
       {/* Riders List */}
       <div className="grid gap-4 mt-8">
-        {riders.map((rider) => (
-          <div
-            key={rider._id}
-            className="border border-gray-200 p-5 rounded-lg flex justify-between items-start shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* Rider Info */}
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800">
-                    {rider.name}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    ID: {rider.raiderId} • {rider.email}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">📞 {rider.phone}</p>
-                </div>
-
-                <div className="text-right">
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-white text-xs mb-1 ${rider.status === 'available'
-                        ? 'bg-green-600'
-                        : rider.status === 'on-delivery'
-                          ? 'bg-yellow-500'
-                          : 'bg-gray-500'
-                      }`}
-                  >
-                    {rider.status}
-                  </span>
-                  <p className="text-xs text-gray-500">
-                    ⭐ {rider.rating} • 🚚 {rider.totalDeliveries} deliveries
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
-                <div>
-                  <strong>Vehicle:</strong> {rider.vehicle.type} •{' '}
-                  {rider.vehicle.color}
-                </div>
-                <div>
-                  <strong>Plate:</strong> {rider.vehicle.plateNumber}
-                </div>
-                <div>
-                  <strong>Joined:</strong>{' '}
-                  {new Date(rider.joinedDate).toLocaleDateString()}
-                </div>
-                <div>
-                  <strong>Last Active:</strong>{' '}
-                  {new Date(rider.lastActive).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2 ml-4">
-              <button
-                onClick={() => setEditingRider(rider)}
-                className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded-md transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => toggleRiderStatus(rider)}
-                className={`px-3 py-1 text-white text-xs rounded-md transition-colors ${rider.status === 'available'
-                    ? 'bg-gray-600 hover:bg-gray-700'
-                    : 'bg-green-600 hover:bg-green-700'
-                  }`}
-              >
-                {rider.status === 'available' ? 'Set Offline' : 'Set Available'}
-              </button>
-              <button
-                onClick={() => deleteRider(rider._id)}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-md transition-colors"
-              >
-                Delete
-              </button>
-            </div>
+        {riders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No riders found. Add your first rider above.
           </div>
-        ))}
+        ) : (
+          riders.map((rider) => (
+            <div
+              key={rider._id}
+              className="border border-gray-200 p-5 rounded-lg flex justify-between items-start shadow-sm hover:shadow-md transition-shadow bg-white"
+            >
+              {/* Rider Info */}
+              <div className="flex-1">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      {rider.name}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      ID: {rider.raiderId} • {rider.email}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">📞 {rider.phone}</p>
+                  </div>
+
+                  <div className="text-right">
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-white text-xs font-medium mb-1 ${rider.status === 'available'
+                          ? 'bg-green-600'
+                          : rider.status === 'on-delivery'
+                            ? 'bg-yellow-500'
+                            : 'bg-gray-500'
+                        }`}
+                    >
+                      {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
+                    </span>
+                    <p className="text-xs text-gray-500">
+                      ⭐ {rider.rating.toFixed(1)} • 🚚 {rider.totalDeliveries} deliveries
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                  <div className="flex items-center">
+                    <strong className="w-20">Vehicle:</strong>
+                    <span>{rider.vehicle.type} • {rider.vehicle.color}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <strong className="w-16">Plate:</strong>
+                    <span className="font-mono">{rider.vehicle.plateNumber}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <strong className="w-20">Joined:</strong>
+                    <span>{new Date(rider.joinedDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <strong className="w-24">Last Active:</strong>
+                    <span>{new Date(rider.lastActive).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-2 ml-4 min-w-[120px]">
+                <button
+                  onClick={() => setEditingRider(rider)}
+                  className="px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-md transition-colors font-medium"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => toggleRiderStatus(rider)}
+                  className={`px-3 py-2 text-white text-sm rounded-md transition-colors font-medium ${rider.status === 'available'
+                      ? 'bg-gray-600 hover:bg-gray-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                >
+                  {rider.status === 'available' ? 'Set Offline' : 'Set Available'}
+                </button>
+                <button
+                  onClick={() => deleteRider(rider._id)}
+                  className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors font-medium"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
