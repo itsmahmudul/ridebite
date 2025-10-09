@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'; // 👁️ Import from react-icons
 
 export default function SignupPage() {
     const [formData, setFormData] = useState({
@@ -14,6 +15,8 @@ export default function SignupPage() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { signup } = useAuth();
     const router = useRouter();
@@ -43,7 +46,7 @@ export default function SignupPage() {
 
         try {
             await signup(formData);
-            router.push('/');
+            router.push('/'); // ✅ Redirect to home page after signup
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);
@@ -69,6 +72,7 @@ export default function SignupPage() {
                 )}
 
                 <form onSubmit={handleSubmit}>
+                    {/* Full Name */}
                     <div className="mb-5">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Full Name
@@ -84,6 +88,7 @@ export default function SignupPage() {
                         />
                     </div>
 
+                    {/* Email */}
                     <div className="mb-5">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Email Address
@@ -99,37 +104,64 @@ export default function SignupPage() {
                         />
                     </div>
 
-                    <div className="mb-5">
+                    {/* Password */}
+                    <div className="mb-5 relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Password
                         </label>
                         <input
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             required
                             minLength={6}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                             placeholder="Enter your password (min. 6 characters)"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-10 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? (
+                                <AiOutlineEyeInvisible size={22} />
+                            ) : (
+                                <AiOutlineEye size={22} />
+                            )}
+                        </button>
                     </div>
 
-                    <div className="mb-6">
+                    {/* Confirm Password */}
+                    <div className="mb-6 relative">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Confirm Password
                         </label>
                         <input
-                            type="password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                            className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                             placeholder="Confirm your password"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-10 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showConfirmPassword ? (
+                                <AiOutlineEyeInvisible size={22} />
+                            ) : (
+                                <AiOutlineEye size={22} />
+                            )}
+                        </button>
                     </div>
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={loading}
