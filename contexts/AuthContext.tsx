@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { User, LoginData, SignupData } from '../types/auth';
 
@@ -26,24 +26,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Create user document in Firestore
+  // Create user document in Firestore - FIXED VERSION
   const createUserDocument = async (firebaseUser: FirebaseUser, name: string) => {
-    const userRef = doc(db, 'users', firebaseUser.uid);
-    const userSnapshot = await getDoc(userRef);
+    try {
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      const userSnapshot = await getDoc(userRef);
 
-    if (!userSnapshot.exists()) {
-      const userData: User = {
+      if (!userSnapshot.exists()) {
+        // Check if this is the first user (make them admin)
+        const usersCollection = await getDocs(collection(db, 'users'));
+        const isFirstUser = usersCollection.empty;
+
+        const userData: User = {
+          uid: firebaseUser.uid,
+          name: name,
+          email: firebaseUser.email!,
+          role: isFirstUser ? 'admin' : 'user', // ← FIXED: First user = admin, others = user
+          createdAt: new Date().toISOString()
+        };
+
+        await setDoc(userRef, userData);
+        return userData;
+      } else {
+        return userSnapshot.data() as User;
+      }
+    } catch (error) {
+      console.error('Error creating user document:', error);
+      // Return a basic user object even if Firestore fails
+      return {
         uid: firebaseUser.uid,
         name: name,
         email: firebaseUser.email!,
-        role: 'admin', // Default role
+        role: 'user', // ← Default to user if there's an error
         createdAt: new Date().toISOString()
       };
-
-      await setDoc(userRef, userData);
-      return userData;
-    } else {
-      return userSnapshot.data() as User;
     }
   };
 
@@ -56,22 +72,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (userSnapshot.exists()) {
         return userSnapshot.data() as User;
       }
-      return null;
+      
+      // If user document doesn't exist, create one
+      return await createUserDocument(firebaseUser, firebaseUser.email?.split('@')[0] || 'User');
     } catch (error) {
       console.error('Error getting user data:', error);
-      return null;
+      // Return a basic user object even if Firestore fails
+      return {
+        uid: firebaseUser.uid,
+        name: firebaseUser.email?.split('@')[0] || 'User',
+        email: firebaseUser.email!,
+        role: 'user', // ← Default to user if there's an error
+        createdAt: new Date().toISOString()
+      };
     }
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userData = await getUserData(firebaseUser);
-        setUser(userData);
-      } else {
+      try {
+        if (firebaseUser) {
+          const userData = await getUserData(firebaseUser);
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Auth state change error:', error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
