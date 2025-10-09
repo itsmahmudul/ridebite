@@ -322,6 +322,6 @@ This project is licensed under the MIT License.
 Your Name - Full Stack Developer
 
 📞 Support
-For support, email your-email@example.com or create an issue in the repository.
+For support, email mdmahmudul.dev@gmail.com or create an issue in the repository.
 
 Built with ❤️ using Next.js and TypeScript
