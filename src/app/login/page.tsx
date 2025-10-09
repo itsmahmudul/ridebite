@@ -31,61 +31,33 @@ export default function LoginPage() {
     try {
       await login(formData);
       router.push('/admin');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
-      padding: '20px'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '40px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h1 style={{
-          textAlign: 'center',
-          marginBottom: '30px',
-          color: '#333',
-          fontSize: '28px',
-          fontWeight: 'bold'
-        }}>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 className="text-center text-3xl font-bold text-gray-800 mb-8">
           Welcome Back
         </h1>
 
         {error && (
-          <div style={{
-            backgroundColor: '#fee',
-            color: '#c33',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '20px',
-            border: '1px solid #fcc'
-          }}>
+          <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-6 border border-red-200">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontWeight: '500',
-              color: '#333'
-            }}>
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <input
@@ -94,25 +66,13 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
               placeholder="Enter your email"
             />
           </div>
 
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontWeight: '500',
-              color: '#333'
-            }}>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
             <input
@@ -121,14 +81,7 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
               placeholder="Enter your password"
             />
           </div>
@@ -136,33 +89,29 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: loading ? '#ccc' : '#ff6b00',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '20px'
-            }}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
+              loading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+            }`}
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', color: '#666' }}>
+        <p className="text-center text-gray-600 mt-6">
           Don not have an account?{' '}
-          <Link href="/signup" style={{ color: '#ff6b00', textDecoration: 'none' }}>
+          <Link 
+            href="/signup" 
+            className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
+          >
             Sign up here
           </Link>
         </p>
 
-        <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', margin: 0 }}>
-            <strong>Demo Credentials:</strong><br />
+        <div className="mt-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600 text-center">
+            <strong className="block mb-1">Demo Credentials:</strong>
             Email: admin@example.com<br />
             Password: admin123
           </p>
