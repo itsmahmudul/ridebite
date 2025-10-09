@@ -58,7 +58,7 @@ export default function UserDashboard() {
             // Fetch orders
             const ordersQuery = query(
                 collection(db, 'orders'),
-                where('userId', '==', user.uid),
+                where('userId', '==', user?.uid),
                 orderBy('createdAt', 'desc'),
                 limit(5)
             );
@@ -72,7 +72,7 @@ export default function UserDashboard() {
             // Fetch rides
             const ridesQuery = query(
                 collection(db, 'rides'),
-                where('userId', '==', user.uid),
+                where('userId', '==', user?.uid),
                 orderBy('createdAt', 'desc'),
                 limit(5)
             );
