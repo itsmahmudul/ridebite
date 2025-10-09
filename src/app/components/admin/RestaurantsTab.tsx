@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Restaurant } from './types';
 import RestaurantForm from './forms/RestaurantForm';
 import api from '@/hooks/api';
@@ -24,10 +23,6 @@ export default function RestaurantsTab({
   loading,
   onRestaurantsUpdate,
 }: RestaurantsTabProps) {
-  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(
-    null
-  );
-
   const addRestaurant = async (restaurantData: RestaurantFormData) => {
     try {
       const response = await api.post('/restaurants', restaurantData);
@@ -69,7 +64,7 @@ export default function RestaurantsTab({
       {/* Restaurant Form */}
       <RestaurantForm
         onSubmit={addRestaurant}
-        editingRestaurant={editingRestaurant}
+        editingRestaurant={null}
       />
 
       {/* Restaurant List */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import api from '@/hooks/api';
 
@@ -11,7 +11,7 @@ interface OrderData {
     totalAmount: number;
 }
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('orderId');
 
@@ -29,6 +29,8 @@ export default function OrderConfirmationPage() {
                 } finally {
                     setLoading(false);
                 }
+            } else {
+                setLoading(false);
             }
         };
 
@@ -37,14 +39,7 @@ export default function OrderConfirmationPage() {
 
     if (loading) {
         return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '50vh',
-                fontSize: '18px',
-                color: '#666'
-            }}>
+            <div className="flex justify-center items-center h-64 text-lg text-gray-600">
                 Loading order details...
             </div>
         );
@@ -52,90 +47,66 @@ export default function OrderConfirmationPage() {
 
     if (!order) {
         return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '50vh',
-                fontSize: '18px',
-                color: 'red'
-            }}>
+            <div className="flex justify-center items-center h-64 text-lg text-red-500">
                 Order not found.
             </div>
         );
     }
 
     return (
-        <div style={{
-            padding: '40px 20px',
-            maxWidth: '600px',
-            margin: '0 auto',
-            textAlign: 'center'
-        }}>
-            <div style={{
-                backgroundColor: 'white',
-                padding: '40px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-            }}>
-                <div style={{ fontSize: '64px', marginBottom: '20px' }}>✅</div>
-                <h1 style={{
-                    margin: '0 0 16px 0',
-                    fontSize: '32px',
-                    color: '#28a745'
-                }}>
+        <div className="px-5 py-10 max-w-2xl mx-auto text-center">
+            <div className="bg-white p-10 rounded-xl shadow-lg">
+                <div className="text-6xl mb-5">✅</div>
+                <h1 className="text-3xl font-bold text-green-600 mb-4">
                     Order Confirmed!
                 </h1>
 
-                <div style={{
-                    textAlign: 'left',
-                    backgroundColor: '#f8f9fa',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    margin: '20px 0'
-                }}>
-                    <h3 style={{ margin: '0 0 16px 0' }}>Order Details</h3>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span>Order ID:</span>
-                        <span style={{ fontWeight: 'bold' }}>{order.orderId}</span>
+                <div className="text-left bg-gray-50 p-5 rounded-lg my-5">
+                    <h3 className="text-xl font-semibold mb-4">Order Details</h3>
+                    <div className="flex justify-between mb-2">
+                        <span className="text-gray-600">Order ID:</span>
+                        <span className="font-bold">{order.orderId}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span>Estimated Delivery:</span>
-                        <span style={{ color: '#ff6b00', fontWeight: 'bold' }}>
+                    <div className="flex justify-between mb-2">
+                        <span className="text-gray-600">Estimated Delivery:</span>
+                        <span className="text-orange-500 font-bold">
                             {new Date(order.estimatedDelivery).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit'
                             })}
                         </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span>Total Amount:</span>
-                        <span style={{ fontWeight: 'bold', fontSize: '18px' }}>
+                    <div className="flex justify-between mb-2">
+                        <span className="text-gray-600">Total Amount:</span>
+                        <span className="font-bold text-lg">
                             ${order.totalAmount.toFixed(2)}
                         </span>
                     </div>
                 </div>
 
-                <p style={{ color: '#666', marginBottom: '30px' }}>
+                <p className="text-gray-600 mb-8">
                     Thank you for your order! Your food is being prepared and will be delivered to you soon.
                 </p>
 
                 <button
                     onClick={() => window.location.href = '/food'}
-                    style={{
-                        padding: '12px 24px',
-                        backgroundColor: '#ff6b00',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontWeight: 'bold'
-                    }}
+                    className="px-6 py-3 bg-orange-500 text-white border-none rounded-lg cursor-pointer text-lg font-bold hover:bg-orange-600 transition-colors"
                 >
                     Order Again
                 </button>
             </div>
         </div>
+    );
+}
+
+export default function OrderConfirmationPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center items-center h-64 text-lg text-gray-600">
+                Loading...
+            </div>
+        }>
+            <OrderConfirmationContent />
+        </Suspense>
     );
 }
