@@ -7,33 +7,41 @@ interface RidesTabProps {
 
 export default function RidesTab({ rides, loading }: RidesTabProps) {
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading rides...</div>;
+    return (
+      <div className="text-center py-5 text-gray-600">
+        Loading rides...
+      </div>
+    );
   }
 
   return (
     <div>
-      <h2>🚗 All Rides</h2>
-      <div style={{ display: 'grid', gap: '15px' }}>
-        {rides.map(ride => (
-          <div key={ride._id} style={{
-            border: '1px solid #e0e0e0',
-            padding: '15px',
-            borderRadius: '8px',
-            backgroundColor: '#f8f9fa'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h4 style={{ margin: 0 }}>{ride.customerName}</h4>
-              <span style={{
-                padding: '2px 8px',
-                backgroundColor: ride.status === 'completed' ? '#28a745' : '#ffc107',
-                color: 'white',
-                borderRadius: '12px',
-                fontSize: '12px'
-              }}>
+      <h2 className="text-2xl font-semibold mb-6">🚗 All Rides</h2>
+
+      <div className="grid gap-4">
+        {rides.map((ride) => (
+          <div
+            key={ride._id}
+            className="border border-gray-200 p-4 rounded-lg bg-gray-50 shadow-sm"
+          >
+            {/* Header Section */}
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-lg font-medium text-gray-800 m-0">
+                {ride.customerName}
+              </h4>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                  ride.status === 'completed'
+                    ? 'bg-green-500'
+                    : 'bg-yellow-500'
+                }`}
+              >
                 {ride.status}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
               <div>
                 <strong>From:</strong> {ride.pickup}
               </div>
@@ -50,7 +58,8 @@ export default function RidesTab({ rides, loading }: RidesTabProps) {
                 <strong>Fare:</strong> ${ride.fare}
               </div>
               <div>
-                <strong>Booked:</strong> {new Date(ride.createdAt).toLocaleDateString()}
+                <strong>Booked:</strong>{' '}
+                {new Date(ride.createdAt).toLocaleDateString()}
               </div>
             </div>
           </div>

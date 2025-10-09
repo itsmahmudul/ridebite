@@ -22,7 +22,6 @@ export default function AdminDashboard() {
     setMenuItems,
     setRides,
     setRiders,
-    refetch
   } = useAdminData(activeTab);
 
   const { user, logout } = useAuth();
@@ -72,58 +71,43 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1 style={{ color: '#333', margin: 0 }}>
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-semibold text-gray-800">
           🛠️ Admin Dashboard
         </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <span style={{ color: '#666' }}>Welcome, {user?.name}</span>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-600 text-sm">
+            Welcome, {user?.name}
+          </span>
           <button
             onClick={handleLogout}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors"
           >
             Logout
           </button>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '10px', 
-        marginBottom: '30px',
-        borderBottom: '2px solid #e0e0e0',
-        paddingBottom: '10px'
-      }}>
-        {(['restaurants', 'menu', 'rides', 'riders'] as TabType[]).map(tab => (
+      {/* Tabs */}
+      <div className="flex gap-3 mb-8 border-b-2 border-gray-200 pb-3">
+        {(['restaurants', 'menu', 'rides', 'riders'] as TabType[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: activeTab === tab ? '#ff6b00' : '#f8f9fa',
-              color: activeTab === tab ? 'white' : '#333',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}
+            className={`px-5 py-2 rounded-md font-semibold capitalize transition-colors ${activeTab === tab
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab}
           </button>
         ))}
       </div>
 
-      {renderActiveTab()}
+      {/* Active Tab Content */}
+      <div>{renderActiveTab()}</div>
     </div>
   );
 }
