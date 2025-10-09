@@ -43,7 +43,7 @@ export default function SignupPage() {
 
         try {
             await signup(formData);
-            router.push('/admin');
+            router.push('/');
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);
