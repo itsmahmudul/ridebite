@@ -12,8 +12,8 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const { login } = useAuth();
+
+  const { login, user } = useAuth();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +30,14 @@ export default function LoginPage() {
 
     try {
       await login(formData);
-      router.push('/admin');
+
+      // Check user role and redirect accordingly
+      // You'll need to adjust this based on how your user object is structured
+      if (user?.role === 'admin' || formData.email.includes('admin')) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -89,11 +96,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
-              loading 
-                ? 'bg-gray-400 cursor-not-allowed' 
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${loading
+                ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
-            }`}
+              }`}
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
@@ -101,8 +107,8 @@ export default function LoginPage() {
 
         <p className="text-center text-gray-600 mt-6">
           Don not have an account?{' '}
-          <Link 
-            href="/signup" 
+          <Link
+            href="/signup"
             className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
           >
             Sign up here
@@ -112,8 +118,16 @@ export default function LoginPage() {
         <div className="mt-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-600 text-center">
             <strong className="block mb-1">Demo Credentials:</strong>
-            Email: admin@example.com<br />
-            Password: admin123
+            <span className="block mb-2">
+              <strong>Admin:</strong><br />
+              Email: admin@example.com<br />
+              Password: admin123
+            </span>
+            <span className="block">
+              <strong>User:</strong><br />
+              Email: user@example.com<br />
+              Password: user123
+            </span>
           </p>
         </div>
       </div>
