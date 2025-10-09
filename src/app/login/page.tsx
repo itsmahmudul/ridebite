@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,14 +30,8 @@ export default function LoginPage() {
 
     try {
       await login(formData);
-
-      // Check user role and redirect accordingly
-      // You'll need to adjust this based on how your user object is structured
-      if (user?.role === 'admin' || formData.email.includes('admin')) {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      // Redirect all users to home page after login
+      router.push('/');
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -97,8 +91,8 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${loading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
               }`}
           >
             {loading ? 'Signing In...' : 'Sign In'}
@@ -106,7 +100,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-gray-600 mt-6">
-          Don not have an account?{' '}
+          Don't have an account?{' '}
           <Link
             href="/signup"
             className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
@@ -118,16 +112,8 @@ export default function LoginPage() {
         <div className="mt-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-600 text-center">
             <strong className="block mb-1">Demo Credentials:</strong>
-            <span className="block mb-2">
-              <strong>Admin:</strong><br />
-              Email: admin@example.com<br />
-              Password: admin123
-            </span>
-            <span className="block">
-              <strong>User:</strong><br />
-              Email: user@example.com<br />
-              Password: user123
-            </span>
+            Email: admin@example.com<br />
+            Password: admin123
           </p>
         </div>
       </div>
