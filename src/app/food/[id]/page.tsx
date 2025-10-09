@@ -32,6 +32,19 @@ interface CartItem extends MenuItem {
   quantity: number;
 }
 
+interface OrderData {
+  orderId: string;
+  _id: string;
+  restaurantId: string;
+  items: CartItem[];
+  customerName: string;
+  customerAddress: string;
+  customerPhone: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
 export default function RestaurantDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -50,11 +63,11 @@ export default function RestaurantDetailPage() {
           api.get(`/restaurants/${restaurantId}`),
           api.get(`/restaurants/${restaurantId}/menu`)
         ]);
-        
+
         setRestaurant(restaurantResponse.data.data);
         setMenu(menuResponse.data.data);
-      } catch (err) {
-        console.error('Error fetching data:', err);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -68,7 +81,7 @@ export default function RestaurantDetailPage() {
   const addToCart = (menuItem: MenuItem) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item._id === menuItem._id);
-      
+
       if (existingItem) {
         return prevCart.map(item =>
           item._id === menuItem._id
@@ -76,7 +89,7 @@ export default function RestaurantDetailPage() {
             : item
         );
       }
-      
+
       return [...prevCart, { ...menuItem, quantity: 1 }];
     });
   };
@@ -108,14 +121,7 @@ export default function RestaurantDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
+      <div className="flex justify-center items-center h-50vh text-lg text-gray-600">
         Loading restaurant...
       </div>
     );
@@ -123,86 +129,56 @@ export default function RestaurantDetailPage() {
 
   if (!restaurant) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh',
-        fontSize: '18px',
-        color: 'red'
-      }}>
+      <div className="flex justify-center items-center h-50vh text-lg text-red-500">
         Restaurant not found.
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="p-5 max-w-7xl mx-auto">
       {/* Restaurant Header */}
-      <div style={{
-        display: 'flex',
-        gap: '20px',
-        marginBottom: '30px',
-        padding: '20px',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <Image 
-          src={restaurant.image} 
+      <div className="flex gap-5 mb-8 p-5 bg-white rounded-xl shadow-md">
+        <Image
+          src={restaurant.image}
           alt={restaurant.name}
           width={200}
           height={150}
-          style={{
-            borderRadius: '8px',
-            objectFit: 'cover'
-          }}
+          className="rounded-lg object-cover"
         />
-        <div style={{ flex: 1 }}>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#333' }}>
+        <div className="flex-1">
+          <h1 className="m-0 mb-2 text-2xl font-bold text-gray-800">
             {restaurant.name}
           </h1>
-          <p style={{ margin: '4px 0', color: '#666', fontSize: '16px' }}>
+          <p className="my-1 text-gray-600 text-base">
             {restaurant.cuisine}
           </p>
-          <div style={{ display: 'flex', gap: '20px', marginTop: '12px' }}>
-            <span style={{ color: '#ff6b00', fontWeight: 'bold' }}>
+          <div className="flex gap-5 mt-3">
+            <span className="text-orange-500 font-bold">
               ⭐ {restaurant.rating}
             </span>
-            <span style={{ color: '#666' }}>
+            <span className="text-gray-600">
               🕒 {restaurant.deliveryTime}
             </span>
-            <span style={{ color: '#666' }}>
+            <span className="text-gray-600">
               📍 {restaurant.address}
             </span>
           </div>
         </div>
-        
+
         {/* Cart Summary */}
-        <div style={{
-          padding: '16px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          minWidth: '200px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div className="p-4 bg-gray-50 rounded-lg min-w-48">
+          <div className="flex justify-between mb-2">
             <span>Items: {getTotalItems()}</span>
             <span>${getCartTotal().toFixed(2)}</span>
           </div>
           <button
             onClick={() => setShowCheckout(true)}
             disabled={cart.length === 0}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: cart.length === 0 ? '#ccc' : '#ff6b00',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}
+            className={`w-full py-3 px-4 text-white border-none rounded-lg cursor-pointer text-base font-bold ${cart.length === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-orange-500 hover:bg-orange-600'
+              }`}
           >
             Checkout
           </button>
@@ -210,76 +186,32 @@ export default function RestaurantDetailPage() {
       </div>
 
       {/* Menu Items */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '20px',
-        marginBottom: '40px'
-      }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
         {menu.map(item => (
           <div
             key={item._id}
-            style={{
-              border: '1px solid #e0e0e0',
-              borderRadius: '12px',
-              padding: '16px',
-              backgroundColor: 'white',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
+            className="border border-gray-300 rounded-xl p-4 bg-white transition-transform duration-200 hover:translate-y-[-2px] hover:shadow-lg"
           >
-            <Image 
-              src={item.image} 
+            <Image
+              src={item.image}
               alt={item.name}
               width={280}
               height={140}
-              style={{
-                width: '100%',
-                height: '140px',
-                objectFit: 'cover',
-                borderRadius: '8px',
-                marginBottom: '12px'
-              }}
+              className="w-full h-36 object-cover rounded-lg mb-3"
             />
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#333' }}>
+            <h3 className="m-0 mb-2 text-lg font-semibold text-gray-800">
               {item.name}
             </h3>
-            <p style={{ 
-              margin: '0 0 8px 0', 
-              color: '#666', 
-              fontSize: '14px',
-              minHeight: '40px'
-            }}>
+            <p className="m-0 mb-2 text-gray-600 text-sm min-h-10">
               {item.description}
             </p>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center'
-            }}>
-              <span style={{ 
-                color: '#ff6b00', 
-                fontWeight: 'bold',
-                fontSize: '18px'
-              }}>
+            <div className="flex justify-between items-center">
+              <span className="text-orange-500 font-bold text-lg">
                 ${item.price.toFixed(2)}
               </span>
               <button
                 onClick={() => addToCart(item)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#ff6b00',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="py-2 px-4 bg-orange-500 text-white border-none rounded-lg cursor-pointer text-sm hover:bg-orange-600"
               >
                 Add to Cart
               </button>
@@ -296,8 +228,8 @@ export default function RestaurantDetailPage() {
           onClose={() => setShowCheckout(false)}
           onQuantityChange={updateQuantity}
           onRemoveItem={removeFromCart}
-          onOrderPlaced={(orderData) => {
-            router.push(`/order-confirmation?orderId=${orderData.orderId}`);
+          onOrderPlaced={(orderData: OrderData) => {
+            router.push(`/order-confirmation?orderId=${orderData.orderId || orderData._id}`);
           }}
         />
       )}
@@ -306,20 +238,20 @@ export default function RestaurantDetailPage() {
 }
 
 // Checkout Modal Component
-function CheckoutModal({ 
-  cart, 
-  restaurant, 
-  onClose, 
-  onQuantityChange, 
+function CheckoutModal({
+  cart,
+  restaurant,
+  onClose,
+  onQuantityChange,
   onRemoveItem,
-  onOrderPlaced 
+  onOrderPlaced
 }: {
   cart: CartItem[];
   restaurant: Restaurant;
   onClose: () => void;
   onQuantityChange: (itemId: string, quantity: number) => void;
   onRemoveItem: (itemId: string) => void;
-  onOrderPlaced: (orderData: any) => void;
+  onOrderPlaced: (orderData: OrderData) => void;
 }) {
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -360,155 +292,88 @@ function CheckoutModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '12px',
-        width: '90%',
-        maxWidth: '500px',
-        maxHeight: '90vh',
-        overflow: 'auto'
-      }}>
-        <h2 style={{ margin: '0 0 20px 0' }}>Checkout</h2>
-        
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-xl w-11/12 max-w-lg max-h-[90vh] overflow-auto">
+        <h2 className="m-0 mb-5 text-xl font-bold">Checkout</h2>
+
         {/* Order Summary */}
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Order Summary</h3>
+        <div className="mb-5">
+          <h3 className="text-lg font-semibold mb-3">Order Summary</h3>
           {cart.map(item => (
-            <div key={item._id} style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 0',
-              borderBottom: '1px solid #eee'
-            }}>
+            <div key={item._id} className="flex justify-between items-center py-2 border-b border-gray-200">
               <div>
-                <div style={{ fontWeight: 'bold' }}>{item.name}</div>
-                <div style={{ fontSize: '14px', color: '#666' }}>
-                  ${item.price.toFixed(2)} × 
-                  <button 
+                <div className="font-semibold">{item.name}</div>
+                <div className="text-sm text-gray-600">
+                  ${item.price.toFixed(2)} ×
+                  <button
                     onClick={() => onQuantityChange(item._id, item.quantity - 1)}
-                    style={{ margin: '0 8px', padding: '2px 8px' }}
+                    className="mx-2 py-0.5 px-2 bg-gray-200 rounded hover:bg-gray-300"
                   >-</button>
                   {item.quantity}
-                  <button 
+                  <button
                     onClick={() => onQuantityChange(item._id, item.quantity + 1)}
-                    style={{ margin: '0 8px', padding: '2px 8px' }}
+                    className="mx-2 py-0.5 px-2 bg-gray-200 rounded hover:bg-gray-300"
                   >+</button>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="flex items-center gap-2">
                 <span>${(item.price * item.quantity).toFixed(2)}</span>
-                <button 
+                <button
                   onClick={() => onRemoveItem(item._id)}
-                  style={{ 
-                    color: 'red', 
-                    border: 'none', 
-                    background: 'none', 
-                    cursor: 'pointer' 
-                  }}
+                  className="text-red-500 border-none bg-transparent cursor-pointer hover:text-red-700"
                 >
                   🗑️
                 </button>
               </div>
             </div>
           ))}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            marginTop: '16px',
-            fontWeight: 'bold',
-            fontSize: '18px'
-          }}>
+          <div className="flex justify-between mt-4 font-bold text-lg">
             <span>Total:</span>
             <span>${getCartTotal().toFixed(2)}</span>
           </div>
         </div>
 
         {/* Customer Information */}
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Customer Information</h3>
+        <div className="mb-5">
+          <h3 className="text-lg font-semibold mb-3">Customer Information</h3>
           <input
             type="text"
             placeholder="Full Name"
             value={customerInfo.name}
             onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-            style={{
-              width: '100%',
-              padding: '10px',
-              marginBottom: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px'
-            }}
+            className="w-full p-2.5 mb-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <input
             type="text"
             placeholder="Delivery Address"
             value={customerInfo.address}
             onChange={(e) => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
-            style={{
-              width: '100%',
-              padding: '10px',
-              marginBottom: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px'
-            }}
+            className="w-full p-2.5 mb-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <input
             type="tel"
             placeholder="Phone Number"
             value={customerInfo.phone}
             onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-            style={{
-              width: '100%',
-              padding: '10px',
-              marginBottom: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px'
-            }}
+            className="w-full p-2.5 mb-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
 
         {/* Buttons */}
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="flex gap-2.5">
           <button
             onClick={onClose}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
+            className="flex-1 py-3 px-4 bg-gray-600 text-white border-none rounded-lg cursor-pointer hover:bg-gray-700"
           >
             Cancel
           </button>
           <button
             onClick={handlePlaceOrder}
             disabled={placingOrder}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: placingOrder ? '#ccc' : '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: placingOrder ? 'not-allowed' : 'pointer'
-            }}
+            className={`flex-1 py-3 px-4 text-white border-none rounded-lg ${placingOrder
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 cursor-pointer'
+              }`}
           >
             {placingOrder ? 'Placing Order...' : 'Place Order'}
           </button>
