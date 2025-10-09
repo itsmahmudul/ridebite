@@ -20,10 +20,10 @@ interface RiderFormData {
     plateNumber: string;
   };
   status: 'available' | 'offline' | 'on-delivery';
-  rating: number;
-  totalDeliveries: number;
-  joinedDate: string;
-  lastActive: string;
+  rating?: number;
+  totalDeliveries?: number;
+  joinedDate?: string;
+  lastActive?: string;
 }
 
 interface StatusUpdateData {
@@ -39,7 +39,15 @@ export default function RidersTab({
 
   const addRider = async (riderData: RiderFormData): Promise<void> => {
     try {
-      const response = await api.post('/raiders', riderData);
+      const completeRiderData = {
+        ...riderData,
+        rating: riderData.rating || 0,
+        totalDeliveries: riderData.totalDeliveries || 0,
+        joinedDate: riderData.joinedDate || new Date().toISOString(),
+        lastActive: riderData.lastActive || new Date().toISOString(),
+      };
+
+      const response = await api.post('/raiders', completeRiderData);
       onRidersUpdate([...riders, response.data.data]);
       alert('✅ Rider added successfully!');
     } catch (error) {
@@ -156,10 +164,10 @@ export default function RidersTab({
                   <div className="text-right">
                     <span
                       className={`inline-block px-3 py-1 rounded-full text-white text-xs font-medium mb-1 ${rider.status === 'available'
-                          ? 'bg-green-600'
-                          : rider.status === 'on-delivery'
-                            ? 'bg-yellow-500'
-                            : 'bg-gray-500'
+                        ? 'bg-green-600'
+                        : rider.status === 'on-delivery'
+                          ? 'bg-yellow-500'
+                          : 'bg-gray-500'
                         }`}
                     >
                       {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
@@ -201,8 +209,8 @@ export default function RidersTab({
                 <button
                   onClick={() => toggleRiderStatus(rider)}
                   className={`px-3 py-2 text-white text-sm rounded-md transition-colors font-medium ${rider.status === 'available'
-                      ? 'bg-gray-600 hover:bg-gray-700'
-                      : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-gray-600 hover:bg-gray-700'
+                    : 'bg-green-600 hover:bg-green-700'
                     }`}
                 >
                   {rider.status === 'available' ? 'Set Offline' : 'Set Available'}

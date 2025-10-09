@@ -5,6 +5,7 @@ interface RiderFormData {
   name: string;
   email: string;
   phone: string;
+  raiderId: string;
   vehicle: {
     type: 'bike' | 'car' | 'scooter' | 'auto';
     plateNumber: string;
@@ -23,6 +24,7 @@ interface FormState {
   name: string;
   email: string;
   phone: string;
+  raiderId: string;
   vehicleType: 'bike' | 'car' | 'scooter' | 'auto';
   plateNumber: string;
   vehicleColor: string;
@@ -34,6 +36,7 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
     name: '',
     email: '',
     phone: '',
+    raiderId: '',
     vehicleType: 'bike',
     plateNumber: '',
     vehicleColor: '',
@@ -46,6 +49,7 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
         name: editingRider.name,
         email: editingRider.email,
         phone: editingRider.phone,
+        raiderId: editingRider.raiderId,
         vehicleType: editingRider.vehicle.type as 'bike' | 'car' | 'scooter' | 'auto',
         plateNumber: editingRider.vehicle.plateNumber,
         vehicleColor: editingRider.vehicle.color,
@@ -60,6 +64,7 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
+      raiderId: formData.raiderId,
       vehicle: {
         type: formData.vehicleType,
         plateNumber: formData.plateNumber,
@@ -75,6 +80,7 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
         name: '',
         email: '',
         phone: '',
+        raiderId: '',
         vehicleType: 'bike',
         plateNumber: '',
         vehicleColor: '',
@@ -127,6 +133,15 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
+        <input
+          type="text"
+          placeholder="Rider ID"
+          value={formData.raiderId}
+          onChange={(e) => setFormData(prev => ({ ...prev, raiderId: e.target.value }))}
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+
         <select
           value={formData.vehicleType}
           onChange={handleVehicleTypeChange}
@@ -173,8 +188,8 @@ export default function RiderForm({ onSubmit, editingRider, onCancel }: RiderFor
         <button
           type="submit"
           className={`px-6 py-2 text-white font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${editingRider
-              ? 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500'
-              : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+            ? 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500'
+            : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
             }`}
         >
           {editingRider ? 'Update Rider' : 'Add Rider'}
